@@ -1,6 +1,5 @@
 // import 'dart:ffi';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,12 +17,25 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int numberToGuess = 0;
   final myController = TextEditingController();
+  final myFocusNode = FocusNode(); // <-- Add this line
   final _listViewController = ScrollController();
   int guessNumber = 0;
 
   List guesses = [
     // {'key': 'You', 'value': '12345'},
     // {'key': 'CPU', 'value': '2 valids, 1 Misplaced'},
+    // {'key': 'You', 'value': '54321'},
+    // {'key': 'CPU', 'value': '1 valid, 2 Misplaced'},
+    // {'key': 'You', 'value': '54321'},
+    // {'key': 'CPU', 'value': '1 valid, 2 Misplaced'},
+    // {'key': 'You', 'value': '54321'},
+    // {'key': 'CPU', 'value': '1 valid, 2 Misplaced'},
+    // {'key': 'You', 'value': '54321'},
+    // {'key': 'CPU', 'value': '1 valid, 2 Misplaced'},
+    // {'key': 'You', 'value': '54321'},
+    // {'key': 'CPU', 'value': '1 valid, 2 Misplaced'},
+    // {'key': 'You', 'value': '54321'},
+    // {'key': 'CPU', 'value': '1 valid, 2 Misplaced'},
     // {'key': 'You', 'value': '54321'},
     // {'key': 'CPU', 'value': '1 valid, 2 Misplaced'},
     // {'key': 'You', 'value': '54321'},
@@ -97,13 +109,16 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       });
       myController.clear();
-      _listViewController.animateTo(
-        _listViewController.position.maxScrollExtent,
-        // double.infinity,
-        // 0,
-        curve: Curves.easeIn,
-        duration: const Duration(milliseconds: 300),
-      );
+      myFocusNode.requestFocus();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _listViewController.animateTo(
+          _listViewController.position.maxScrollExtent,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+        );
+      });
+
       if ((verifiedGuess as List)[1]['value'] == 'You won!') {
         bool dialogResult = await showDialog(
           barrierDismissible: false,
@@ -170,7 +185,13 @@ class _MyHomePageState extends State<MyHomePage> {
         } else {
           regenerateRandomNumber();
         }
-      }
+      };
+      // _listViewController.animateTo(
+      //   // Scroll to the bottom of the list view
+      //   _listViewController.position.maxScrollExtent,
+      //   curve: Curves.easeIn,
+      //   duration: const Duration(milliseconds: 300),
+      // );
     }
   }
 
@@ -219,12 +240,21 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       numberToGuess = generateRandomNumber();
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Scroll to the bottom of the list view after the first frame is rendered
+      _listViewController.animateTo(
+        _listViewController.position.maxScrollExtent,
+        curve: Curves.easeIn,
+        duration: const Duration(milliseconds: 300),
+      );
+    });
   }
 
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
     myController.dispose();
+    myFocusNode.dispose(); // <-- Add this line
     super.dispose();
   }
 
@@ -417,9 +447,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Expanded(
                     child: TextField(
+                      focusNode: myFocusNode, // <-- Add this line
+                      textAlign: TextAlign.center,
                       autofocus: true,
                       controller: myController,
                       keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      onSubmitted: (value) => submitGuess(),
                       // onSubmitted: submitGuess(),
                       // onChanged: (String value) {},
                       // onEditingComplete: () {},
@@ -443,7 +477,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         labelText: 'Your guess :',
                         labelStyle: TextStyle(color: Colors.black, fontSize: 30),
                       ),
-                      style: const TextStyle(color: Colors.black, fontSize: 20),
+                      style: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
                   SizedBox(
