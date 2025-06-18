@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:numbersgame/screens/homepage.dart';
+import 'package:numbersgame/screens/homemenu2.dart';
+// import 'package:numbersgame/screens/homepage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(),
+      home: const HomeMenu(),
     );
   }
 }
