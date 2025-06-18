@@ -3,6 +3,8 @@ import 'package:numbersgame/screens/homemenu2.dart';
 // import 'package:numbersgame/screens/homepage.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Ensure that the Flutter engine is initialized before running the app
   runApp(const MyApp());
 }
 

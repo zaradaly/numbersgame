@@ -47,11 +47,15 @@ class HomeMenu extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.symmetric(
                   vertical: 10,
-                  horizontal: 50,
+                  horizontal: 25,
                 ),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.5),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -96,11 +100,15 @@ class HomeMenu extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.symmetric(
                   vertical: 10,
-                  horizontal: 50,
+                  horizontal: 25,
                 ),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.5),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -140,11 +148,15 @@ class HomeMenu extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.symmetric(
                   vertical: 10,
-                  horizontal: 50,
+                  horizontal: 25,
                 ),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.5),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -302,11 +314,15 @@ class HomeMenu extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.symmetric(
                   vertical: 10,
-                  horizontal: 50,
+                  horizontal: 25,
                 ),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.5),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
