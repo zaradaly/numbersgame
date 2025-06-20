@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:numbersgame/screens/homepage.dart';
+import 'package:numbersgame/screens/newtheme.dart';
 
 class HomeMenu extends StatelessWidget {
   const HomeMenu({super.key});
@@ -13,7 +14,8 @@ class HomeMenu extends StatelessWidget {
       appBar: AppBar(
         // transparent app bar
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        // backgroundColor: Colors.deepPurple[300],
+        // elevation: 0,
         title: const Text(
           'Numbers Game',
           style: TextStyle(
@@ -26,7 +28,8 @@ class HomeMenu extends StatelessWidget {
       ),
       // body with background image
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
+          // color: Colors.deepPurple[300],
           image: DecorationImage(
             image: AssetImage('assets/images/BlueWhale.gif'),
             fit: BoxFit.cover,
@@ -41,7 +44,7 @@ class HomeMenu extends StatelessWidget {
                 image: AssetImage('assets/images/maths.gif'),
                 // full width image
                 width: double.infinity,
-                // height: 250,
+                height: 200,
               ),
               const SizedBox(height: 20),
               Container(
@@ -117,12 +120,12 @@ class HomeMenu extends StatelessWidget {
                       offset: const Offset(0, 1), // changes position of shadow
                     ),
                   ],
-                  color: Colors.blue.withOpacity(0.8),
+                  color: Colors.deepPurple.withOpacity(0.9),
                 ),
                 child: ListTile(
                   title: Center(
                     child: const Text(
-                      'Settings',
+                      'StarGame V2',
                       style: TextStyle(
                         fontSize: 24,
                         color: Colors.white,
@@ -136,12 +139,18 @@ class HomeMenu extends StatelessWidget {
                   ),
                   tileColor: Colors.white,
                   leading: const Icon(
-                    Icons.settings,
+                    Icons.play_arrow,
                     color: Colors.white,
                     size: 30,
                   ),
                   onTap: () {
                     // Add functionality for settings
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PurplePage(),
+                      ),
+                    );
                   },
                 ),
               ),

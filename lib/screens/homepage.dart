@@ -462,37 +462,37 @@ class _MyHomePageState extends State<MyHomePage> {
                       // onTap: () {},
                       // onAppPrivateCommand: (String action, Map<String, dynamic> data) {},
                       decoration: const InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.black, width: 2.0),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.black, width: 2.0),
-                        ),
+                        // enabledBorder: OutlineInputBorder(
+                        //   borderRadius: BorderRadius.all(Radius.circular(10)),
+                        //   borderSide: BorderSide(color: Colors.black),
+                        // ),
+                        // border: OutlineInputBorder(
+                        //   borderRadius: BorderRadius.all(Radius.circular(10)),
+                        //   borderSide: BorderSide(color: Colors.black, width: 2.0),
+                        // ),
+                        // focusedBorder: OutlineInputBorder(
+                        //   borderRadius: BorderRadius.all(Radius.circular(10)),
+                        //   borderSide: BorderSide(color: Colors.black, width: 2.0),
+                        // ),
                         labelText: 'Your guess :',
                         labelStyle: TextStyle(color: Colors.black, fontSize: 30),
                       ),
                       style: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  SizedBox(
-                    child: TextButton(
-                      onPressed: submitGuess,
-                      // style: TextButton.styleFrom(
-                      //   backgroundColor: Colors.blue,
-                      // ),
-                      child: const Icon(
-                        Icons.send,
-                        color: Colors.black,
-                        size: 40,
-                      ),
-                    ),
-                  ),
+                  // SizedBox(
+                  //   child: TextButton(
+                  //     onPressed: submitGuess,
+                  //     // style: TextButton.styleFrom(
+                  //     //   backgroundColor: Colors.blue,
+                  //     // ),
+                  //     child: const Icon(
+                  //       Icons.send,
+                  //       color: Colors.black,
+                  //       size: 40,
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

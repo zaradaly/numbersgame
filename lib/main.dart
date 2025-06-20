@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+// import 'package:numbersgame/screens/homemenu.dart';
 import 'package:numbersgame/screens/homemenu2.dart';
 // import 'package:numbersgame/screens/homepage.dart';
+// import 'package:numbersgame/screens/newtheme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
+      // home: const HomeMenu(),
       home: const HomeMenu(),
     );
   }
