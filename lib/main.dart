@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:numbersgame/audio_manager.dart';
 // import 'package:numbersgame/screens/homemenu.dart';
 import 'package:numbersgame/screens/homemenu2.dart';
 // import 'package:numbersgame/screens/homepage.dart';
 // import 'package:numbersgame/screens/newtheme.dart';
 
-void main() {
+late final ValueNotifier<String> playerName;
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Ensure that the Flutter engine is initialized before running the app
+  await AudioManager().init();
+  await initLocalStorage();
+
+  playerName = ValueNotifier(localStorage.getItem('playerName') ?? '');
+  // playerName = ValueNotifier('');
+  playerName.addListener(() {
+    localStorage.setItem('playerName', playerName.value);
+  });
   runApp(const MyApp());
 }
 

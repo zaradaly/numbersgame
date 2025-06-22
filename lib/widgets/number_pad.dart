@@ -10,36 +10,37 @@ class MyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (child == 'DEL') {
-      buttonColor = Colors.redAccent;
-    } else if (child == '=') {
-      buttonColor = Colors.greenAccent;
+    // if (child == 'DEL') {
+    //   buttonColor = Colors.redAccent;
+    // } else 
+    if (child == 'Submit') {
+      buttonColor = Colors.green;
     } 
     // else if (child.isEmpty) {
     //   return const SizedBox.shrink();
     // }
 
-    if (child == '=') {
-      // make this button take 2 columns
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(
-                child,
-                style: whiteTextStyle.copyWith(fontSize: 32),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
+    // if (child == '=') {
+    //   // make this button take 2 columns
+    //   return Padding(
+    //     padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+    //     child: GestureDetector(
+    //       onTap: onTap,
+    //       child: Container(
+    //         decoration: BoxDecoration(
+    //           color: Colors.green,
+    //           borderRadius: BorderRadius.circular(8),
+    //         ),
+    //         child: Center(
+    //           child: Text(
+    //             child,
+    //             style: whiteTextStyle.copyWith(fontSize: 32),
+    //           ),
+    //         ),
+    //       ),
+    //     ),
+    //   );
+    // }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
