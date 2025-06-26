@@ -3,16 +3,22 @@ import 'dart:math';
 
 // import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:numbersgame/audio_manager.dart';
 import 'package:numbersgame/const.dart';
 import 'package:numbersgame/main.dart';
+import 'package:numbersgame/providers/currency_provider.dart';
 import 'package:numbersgame/widgets/number_pad.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class PurplePage extends StatefulWidget {
+  final int digitsNumber;
+
   // final String child;
   const PurplePage({
     super.key,
+    required this.digitsNumber,
     // required this.child,
   });
 
@@ -34,7 +40,7 @@ class PurpleePageState extends State<PurplePage> {
     super.initState();
     setState(() {
       numberToGuess = generateRandomNumber();
-      // userAnswer = numberToGuess.toString();
+      userAnswer = numberToGuess.toString();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // playerName.value = '';
@@ -110,8 +116,14 @@ class PurpleePageState extends State<PurplePage> {
     guessNumber = 0;
 
     while (!validNumber) {
-      digit = Random().nextInt(8999) + 1000;
-      // digit = Random().nextInt(89999) + 10000;
+      if (widget.digitsNumber == 4) {
+        digit = Random().nextInt(8999) + 1000; // 1000 to 9999
+      } else if (widget.digitsNumber == 5) {
+        digit = Random().nextInt(89999) + 10000; // 10000 to 99999
+      } else {
+        // Default to 4 digits if no valid number is specified
+        digit = Random().nextInt(8999) + 1000; // 1000 to 9999
+      }
       if (!duplicateFound(digit)) validNumber = true;
     }
     return digit;
@@ -133,13 +145,38 @@ class PurpleePageState extends State<PurplePage> {
   String userAnswer = '';
 
   void buttonTapped(String value) async {
-    if (value == 'Submit') {
+    if (value == '⌫') {
+      AudioManager().playAudio('assets/audio/delete.mp3');
+      // remove last character from userAnswer
+      setState(() {
+        if (userAnswer.isNotEmpty) {
+          userAnswer = userAnswer.substring(0, userAnswer.length - 1);
+        }
+      });
+      return;
+    } else if (value == '') {
+      // Do nothing for empty value
+      return;
+    } else if (value == 'Submit') {
       // await player.play(AssetSource('audio/enter.mp3'));
       AudioManager().playAudio('assets/audio/enter.mp3');
       // Check if userAnswer is empty
+      // hide previous snackbar if any
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
       if (userAnswer.isEmpty) {
+        // Show a snackbar to ask the user to enter a number
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please enter a number before submitting.')),
+          SnackBar(
+            content: Text('Please enter a number before submitting.'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.redAccent.shade200,
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).size.height * 0.38,
+              left: 20,
+              right: 20,
+            ),
+          ),
         );
         return;
       } else if (userAnswer.length < numberToGuess.toString().length) {
@@ -147,6 +184,13 @@ class PurpleePageState extends State<PurplePage> {
           SnackBar(
             content: Text(
               'You must enter ${numberToGuess.toString().length} digits.',
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.redAccent.shade200,
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).size.height * 0.38,
+              left: 20,
+              right: 20,
             ),
           ),
         );
@@ -158,6 +202,13 @@ class PurpleePageState extends State<PurplePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Your answer cannot contain duplicate digits.'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.redAccent.shade200,
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).size.height * 0.38,
+              left: 20,
+              right: 20,
+            ),
           ),
         );
         return;
@@ -348,6 +399,7 @@ class PurpleePageState extends State<PurplePage> {
 
   @override
   Widget build(BuildContext context) {
+    final currencies = context.watch<CurrencyProvider>().currency;
     return Scaffold(
       backgroundColor: Colors.deepPurple[300],
       extendBodyBehindAppBar: true,
@@ -370,24 +422,77 @@ class PurpleePageState extends State<PurplePage> {
                 ],
               ),
               child: Row(
-                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 // crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // icon button to go back
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                  Row(
+                    children: [
+                      // icon button to go back
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+
+                      Text(
+                        '4 digits',
+                        style: whiteTextStyle.copyWith(
+                          // fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
 
-                  Text(
-                    'Guess the Number',
-                    style: whiteTextStyle.copyWith(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '🪙 ${currencies.coins.toString()}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width:10),
+                      Text(
+                        '💎 ${currencies.gems.toString()}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      // const SizedBox(width: 20),
+                      // Text(
+                      //   '🏅 ${currencies.badgesUnlocked}/${currencies.badgesTotal}',
+                      //   style: TextStyle(
+                      //     // fontSize: 20,
+                      //     color: Colors.white,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
+                      const SizedBox(width:10),
+                    ],
                   ),
+
+                  // icon button to restart the game
+                  // IconButton(
+                  //   icon: Icon(Icons.refresh, color: Colors.white),
+                  //   onPressed: () {
+                  //     // Reset the game
+                  //     setState(() {
+                  //       guesses.clear();
+                  //       numberToGuess = generateRandomNumber();
+                  //       userAnswer = '';
+                  //     });
+                  //     // Play sound without stopping the background music
+                  //     AudioManager().playAudio('assets/audio/playagain.mp3');
+                  //   },
+                  // ),
                 ],
               ),
             ),
@@ -433,13 +538,41 @@ class PurpleePageState extends State<PurplePage> {
                               ),
                             ],
                           ),
-                          child: Text(
-                            'Guess #${index + 1}: ${guesses[index]['answer']?.toString() ?? 'No Answer'}',
-                            style: whiteTextStyle.copyWith(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                          child: RichText(
+                            text: TextSpan(
+                              text: 'Guess #${index + 1}',
+                              style: whiteTextStyle.copyWith(
+                                fontSize: 20,
+                                // fontWeight: FontWeight.bold,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: ' | ',
+                                  style: TextStyle(
+                                    fontSize: 25,
+                                    color: Colors.deepPurple.shade400,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text:
+                                      guesses[index]['answer']?.toString() ??
+                                      'No Answer',
+                                  style: whiteTextStyle.copyWith(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          // Text(
+                          //   'Guess #${index + 1}: ${guesses[index]['answer']?.toString() ?? 'No Answer'}',
+                          //   style: whiteTextStyle.copyWith(
+                          //     fontSize: 22,
+                          //     fontWeight: FontWeight.bold,
+                          //   ),
+                          // ),
                         ),
                         const SizedBox(width: 16),
                         // Second element: result details
@@ -523,46 +656,18 @@ class PurpleePageState extends State<PurplePage> {
                         GestureDetector(
                           onTap: () {
                             // Play sound without stopping the background music
-                            AudioManager().playAudio('assets/audio/delete.mp3');
-                            setState(() {
-                              // remove last character from userAnswer
-                              if (userAnswer.isNotEmpty) {
-                                userAnswer = userAnswer.substring(
-                                  0,
-                                  userAnswer.length - 1,
-                                );
-                              }
-                            });
+                            AudioManager().playAudio('assets/audio/enter.mp3');
+                            // Submit the userAnswer
+                            buttonTapped('Submit');
                           },
                           child: Center(
                             child: Icon(
-                              Icons.backspace,
-                              color: Colors.yellow,
-                              size: 32,
+                              Icons.send_rounded,
+                              color: Colors.greenAccent[100],
+                              size: 45,
                             ),
                           ),
                         ),
-
-                        // Container(
-                        //   decoration: BoxDecoration(
-                        //     color: Colors.orangeAccent,
-                        //     borderRadius: BorderRadius.circular(8),
-                        //   ),
-                        //   child: IconButton(
-                        //     icon: Icon(Icons.backspace, color: Colors.white),
-                        //     onPressed: () {
-                        //       setState(() {
-                        //         // remove last character from userAnswer
-                        //         if (userAnswer.isNotEmpty) {
-                        //           userAnswer = userAnswer.substring(
-                        //             0,
-                        //             userAnswer.length - 1,
-                        //           );
-                        //         }
-                        //       });
-                        //     },
-                        //   ),
-                        // ),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -583,29 +688,6 @@ class PurpleePageState extends State<PurplePage> {
                         );
                       },
                     ),
-                    // Row widget containing button with value 0 and the submit button taking 2 columns
-                    const SizedBox(height: 10),
-                    Row(
-                      // mainAxisSize: MainAxisSize.max,
-                      // mainAxisAlignment: MainAxisAlignment.center,
-                      // crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: MyButton(
-                            child: '0',
-                            onTap: () => buttonTapped('0'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          flex: 2,
-                          child: MyButton(
-                            child: "Submit",
-                            onTap: () => buttonTapped('Submit'),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -623,35 +705,60 @@ class PurpleePageState extends State<PurplePage> {
     super.dispose();
   }
 
-  Future<void> sendPlayerNameAndGuesses(
-    String value,
-    int length,
-  ) async {
+  Future<void> sendPlayerNameAndGuesses(String value, int length) async {
     try {
-      final response = await http.post(
-        Uri.parse('https://projects.zaradaly.com/numbersgame/submitscore.php'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, dynamic>{
-          'username': value,
-          'score': length,
-        }),
-      );
+      // check if connection is available
+      if (!await isConnected()) {
+        final response = await http.post(
+          Uri.parse(
+            'https://projects.zaradaly.com/numbersgame/submitscore.php',
+          ),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'username': value,
+            'score': length,
+            'mode': widget.digitsNumber,
+          }),
+        );
 
-      if (response.statusCode == 200) {
-        // If the server returns an OK response, parse the JSON.
-        print(jsonDecode(response.body));
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          print('Player name and guesses submitted successfully');
+        if (response.statusCode == 200) {
+          // If the server returns an OK response, parse the JSON.
+          print(response.body);
+          final data = jsonDecode(response.body);
+          if (data['status'] == 'success') {
+            print('Player name and guesses submitted successfully');
+          } else {
+            print(
+              'Failed to submit player name and guesses: ${data['message']}',
+            );
+          }
         } else {
-          print('Failed to submit player name and guesses: ${data['message']}');
+          // If the server did not return an OK response, throw an exception.
+          throw Exception('Failed to submit player name and guesses');
         }
       } else {
-        // If the server did not return an OK response, throw an exception.
-        throw Exception('Failed to submit player name and guesses');
+        // If not connected, save the data to Hive for later syncing
+        final box = await Hive.openBox('unsyncedGames');
+        await box.add({
+          'username': value,
+          'score': length,
+          'mode': widget.digitsNumber,
+        });
+        print('No internet connection. Data saved locally for later syncing.');
       }
+      // add coins and gems to the player currency
+      final currencyProvider = context.read<CurrencyProvider>();
+      currencyProvider.currency.coins += 10; // Add 10 coins for winning
+      currencyProvider.currency.gems += 1; // Add 1 gem for winning
+      // Notify listeners to update the UI
+      currencyProvider.notifyListeners();
+      // Save the updated currency to Hive
+      final currencyBox = await Hive.openBox('playerCurrency');
+      await currencyBox.put('coins', currencyProvider.currency.coins);
+      await currencyBox.put('gems', currencyProvider.currency.gems);
+      print('Player currency updated and saved to Hive.');
     } catch (e) {
       print('Error sending data: $e');
       rethrow;

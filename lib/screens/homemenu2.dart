@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 // import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:numbersgame/audio_manager.dart';
+import 'package:numbersgame/main.dart';
+import 'package:numbersgame/providers/currency_provider.dart';
+import 'package:numbersgame/screens/highscores.dart';
 // import 'package:numbersgame/screens/homepage.dart';
 import 'package:numbersgame/screens/newtheme.dart';
+import 'package:provider/provider.dart';
 
 class HomeMenu extends StatefulWidget {
   const HomeMenu({super.key});
@@ -18,10 +22,13 @@ class _HomeMenuState extends State<HomeMenu> with WidgetsBindingObserver {
   // late final AudioPlayer _bgmPlayer;
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     AudioManager().playBackgroundMusic('assets/audio/background.mp3');
+    if (await isConnected()) {
+      await syncWithServer();
+    }
   }
 
   @override
@@ -41,27 +48,20 @@ class _HomeMenuState extends State<HomeMenu> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final currencies = context.watch<CurrencyProvider>().currency;
+
+    // check is this screen is currently visible and active
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      // reload currencies
+      context.read<CurrencyProvider>().loadCurrency();
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        // transparent app bar
-        backgroundColor: Colors.transparent,
-        // backgroundColor: Colors.deepPurple[300],
-        // elevation: 1,
-        // title: const Text(
-        //   'Numbers Game',
-        //   style: TextStyle(
-        //     fontSize: 24,
-        //     fontWeight: FontWeight.bold,
-        //     color: Colors.white,
-        //   ),
-        // ),
-        // centerTitle: true,
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent),
       // body with background image
       body: Container(
         decoration: BoxDecoration(
-          // color: Colors.deepPurple[300],
           gradient: const LinearGradient(
             colors: [Colors.blueAccent, Colors.deepPurple],
             begin: Alignment.topLeft,
@@ -75,75 +75,56 @@ class _HomeMenuState extends State<HomeMenu> with WidgetsBindingObserver {
         child: Center(
           child: ListView(
             shrinkWrap: true,
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
-              // const Image(
-              //   image: AssetImage('assets/images/maths.gif'),
-              //   // full width image
-              //   width: double.infinity,
-              //   height: 200,
-              // ),
-              // const SizedBox(height: 20),
+              // players name
+              Text(
+                ' ${playerName.value}',
+                style: const TextStyle(
+                  fontSize: 25,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '🪙 ${currencies.coins.toString()}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Text(
+                    '💎 ${currencies.gems.toString()}',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Text(
+                    '🏅 ${currencies.badgesUnlocked}/${currencies.badgesTotal}',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+
               const Image(
                 image: AssetImage('assets/images/icons/logotransparent.png'),
                 // width: double.infinity,
                 height: 300,
                 // fit: BoxFit.cover,
               ),
-              // const SizedBox(height: 20),
-              // Container(
-              //   margin: const EdgeInsets.symmetric(
-              //     vertical: 10,
-              //     horizontal: 25,
-              //   ),
-              //   padding: const EdgeInsets.all(10),
-              //   decoration: BoxDecoration(
-              //     borderRadius: BorderRadius.circular(15),
-              //     border: Border.all(
-              //       color: Colors.white.withOpacity(0.5),
-              //       width: 2,
-              //     ),
-              //     boxShadow: [
-              //       BoxShadow(
-              //         color: Colors.black.withOpacity(0.1),
-              //         spreadRadius: 2,
-              //         blurRadius: 3,
-              //         offset: const Offset(0, 1), // changes position of shadow
-              //       ),
-              //     ],
-              //     color: Colors.blue.withOpacity(0.8),
-              //   ),
-              //   child: ListTile(
-              //     title: Center(
-              //       child: const Text(
-              //         'Start Game',
-              //         style: TextStyle(
-              //           fontSize: 24,
-              //           color: Colors.white,
-              //           fontWeight: FontWeight.bold,
-              //         ),
-              //       ),
-              //     ),
-              //     iconColor: Colors.white,
-              //     shape: RoundedRectangleBorder(
-              //       borderRadius: BorderRadius.circular(15),
-              //     ),
-              //     tileColor: Colors.white,
-              //     leading: const Icon(
-              //       Icons.play_arrow,
-              //       color: Colors.white,
-              //       size: 30,
-              //     ),
-              //     onTap: () {
-              //       Navigator.push(
-              //         context,
-              //         MaterialPageRoute(
-              //           builder: (context) => const MyHomePage(),
-              //         ),
-              //       );
-              //     },
-              //   ),
-              // ),
               Container(
                 margin: const EdgeInsets.symmetric(
                   vertical: 10,
@@ -164,38 +145,148 @@ class _HomeMenuState extends State<HomeMenu> with WidgetsBindingObserver {
                       offset: const Offset(0, 1), // changes position of shadow
                     ),
                   ],
-                  color: Colors.deepPurple.withOpacity(0.9),
+                  color: Colors.blueAccent.withOpacity(0.8),
                 ),
-                child: ListTile(
-                  title: Center(
-                    child: const Text(
-                      'Start Game',
+                child: Column(
+                  children: [
+                    Text(
+                      'Start 🎮',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 30,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  iconColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  tileColor: Colors.white,
-                  leading: const Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                  onTap: () {
-                    // Add functionality for settings
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PurplePage(),
-                      ),
-                    );
-                  },
+                    // const SizedBox(height: 10),
+                    const Divider(color: Colors.white54, thickness: 1),
+                    const SizedBox(height: 5),
+                    // Start Game button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(
+                              0.8,
+                            ), // Button color
+                            foregroundColor: Colors.deepPurple, // Text color
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 1,
+                            textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              // letterSpacing: 1.2,
+                            ),
+                          ),
+                          onPressed: () {
+                            // deduct 10 coins from the player
+                            if (currencies.coins >= 10) {
+                              context.read<CurrencyProvider>().deductCoins(10);
+                            } else {
+                              // show popup dialog if not enough coins
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text('Not Enough Coins'),
+                                    content: const Text(
+                                      'You need at least 10 coins to start a game.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                              return;
+                            }
+                            // navigate to the game screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const PurplePage(digitsNumber: 4),
+                              ),
+                            );
+                          },
+                          child: const Text('Classic'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(
+                              0.8,
+                            ), // Button color
+                            foregroundColor: Colors.deepPurple, // Text color
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 1,
+                            textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              // letterSpacing: 1.2,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const PurplePage(digitsNumber: 5),
+                              ),
+                            );
+                          },
+                          child: const Text('Hard'),
+                        ),
+                      ],
+                    ),
+                    // ListTile(
+                    //   title: Center(
+                    //     child: const Text(
+                    //       'Start Game',
+                    //       style: TextStyle(
+                    //         fontSize: 24,
+                    //         color: Colors.white,
+                    //         fontWeight: FontWeight.bold,
+                    //       ),
+                    //     ),
+                    //   ),
+                    //   iconColor: Colors.white,
+                    //   shape: RoundedRectangleBorder(
+                    //     borderRadius: BorderRadius.circular(15),
+                    //   ),
+                    //   tileColor: Colors.white,
+                    //   leading: const Icon(
+                    //     Icons.play_arrow,
+                    //     color: Colors.white,
+                    //     size: 30,
+                    //   ),
+                    //   onTap: () {
+                    //     // Add functionality for settings
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //         builder: (context) => const PurplePage(),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
+                  ],
                 ),
               ),
               Container(
@@ -408,6 +499,60 @@ class _HomeMenuState extends State<HomeMenu> with WidgetsBindingObserver {
                           },
                         );
                       },
+                    );
+                  },
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 25,
+                ),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.5),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      spreadRadius: 2,
+                      blurRadius: 3,
+                      offset: const Offset(0, 1), // changes position of shadow
+                    ),
+                  ],
+                  color: Colors.blue.withOpacity(0.8),
+                ),
+                child: ListTile(
+                  title: Center(
+                    child: const Text(
+                      'High Scores',
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  iconColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  tileColor: Colors.white,
+                  leading: const Icon(
+                    Icons.emoji_events,
+                    color: Colors.orange,
+                    size: 30,
+                  ),
+                  onTap: () {
+                    // Add high scores functionality
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HighScores(),
+                      ),
                     );
                   },
                 ),

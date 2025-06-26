@@ -13,12 +13,13 @@ class MyButton extends StatelessWidget {
     // if (child == 'DEL') {
     //   buttonColor = Colors.redAccent;
     // } else 
-    if (child == 'Submit') {
-      buttonColor = Colors.green;
+    if (child == '⌫') {
+      buttonColor = Colors.orangeAccent;
     } 
-    // else if (child.isEmpty) {
-    //   return const SizedBox.shrink();
-    // }
+    else if (child.isEmpty) {
+      buttonColor = Colors.transparent;
+      // return const SizedBox.shrink();
+    }
 
     // if (child == '=') {
     //   // make this button take 2 columns
