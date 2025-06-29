@@ -1,5 +1,4 @@
 // create widget that gets data from api and displays it in a list view
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';

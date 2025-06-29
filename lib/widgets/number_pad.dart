@@ -14,7 +14,7 @@ class MyButton extends StatelessWidget {
     //   buttonColor = Colors.redAccent;
     // } else 
     if (child == '⌫') {
-      buttonColor = Colors.orangeAccent;
+      buttonColor = Colors.transparent;
     } 
     else if (child.isEmpty) {
       buttonColor = Colors.transparent;
@@ -52,7 +52,10 @@ class MyButton extends StatelessWidget {
             color: buttonColor,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Center(child: Text(child, style: whiteTextStyle)),
+          child: Center(child: Text(child, style: whiteTextStyle.copyWith(
+            color: child == '⌫' ? Colors.orangeAccent : Colors.white,
+            fontSize: child == '⌫' ? 40 : 32,
+          ))),
         ),
       ),
     );

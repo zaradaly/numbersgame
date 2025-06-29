@@ -23,9 +23,9 @@ Future<void> main() async {
   await Hive.initFlutter();
   await Hive.openBox('unsyncedGames');
 
-  if (await isConnected()){
-    await syncWithServer();
-  }
+  // if (await isConnected()){
+  //   await syncWithServer();
+  // }
 
   playerName = ValueNotifier(localStorage.getItem('playerName') ?? '');
   // playerName = ValueNotifier('');
@@ -36,7 +36,7 @@ Future<void> main() async {
     ChangeNotifierProvider(
       create: (_) => CurrencyProvider()..loadCurrency(),
       child: const MyApp(),
-    )
+    ),
   );
 }
 
@@ -44,6 +44,7 @@ Future<void> syncWithServer() async {
   // send the Hive unsynced games to the server
   final unsyncedGamesBox = Hive.box('unsyncedGames');
   final unsyncedGames = unsyncedGamesBox.values.toList();
+  print(unsyncedGames);
   if (unsyncedGames.isNotEmpty) {
     try {
       // Here you would typically send the unsynced games to your server
@@ -60,7 +61,7 @@ Future<void> syncWithServer() async {
         print('Failed to sync with server: ${response.statusCode}');
         return;
       }
-      
+
       // After successful sync, clear the unsynced games box
       await unsyncedGamesBox.clear();
     } catch (e) {
@@ -71,8 +72,23 @@ Future<void> syncWithServer() async {
 }
 
 Future<bool> isConnected() async {
-  final result = await Connectivity().checkConnectivity();
-  return result != ConnectivityResult.none;
+  // First check if connected to any network (Wi-Fi or mobile)
+  var connectivityResult = await Connectivity().checkConnectivity();
+  if (connectivityResult == ConnectivityResult.none) {
+    return false;
+  }
+
+  // Then check actual internet access by pinging a known site
+  try {
+    final result = await http
+        .get(
+          Uri.parse('https://projects.zaradaly.com/numbersgame/pingtest.txt'),
+        )
+        .timeout(Duration(seconds: 3));
+    return result.statusCode == 200;
+  } catch (e) {
+    return false;
+  }
 }
 
 class MyApp extends StatelessWidget {

@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.1.0+18
+version: 2.2.1+22
 
 environment:
   sdk: ^3.9.0-172.0.dev
@@ -83,7 +83,12 @@ flutter:
     - assets/images/maths.gif
     - assets/images/icons/logo.jpg
     - assets/images/icons/logotransparent.png
+    - assets/images/coins.gif
+    - assets/images/gems.gif
+    - assets/images/streaks.gif
     - assets/images/catdance.gif
+    - assets/images/catcry.gif
+    - assets/images/catmad.gif
     - assets/images/fireworks.gif
     - assets/images/trophy.gif
     - assets/audio/tap.mp3
@@ -91,8 +96,21 @@ flutter:
     - assets/audio/delete.mp3
     - assets/audio/background.mp3
     - assets/audio/applauseWhistle.wav
+    - assets/audio/lose.mp3
     - assets/audio/playagain.mp3
     - assets/svgs/flags/
+    - assets/images/badges/win1.png
+    - assets/images/badges/win5.png
+    - assets/images/badges/win20.png
+    - assets/images/badges/win50.png
+    - assets/images/badges/win100.png
+    - assets/images/badges/win200.png
+    - assets/images/badges/streak3.png
+    - assets/images/badges/streak5.png
+    - assets/images/badges/streak10.png
+    - assets/images/badges/streak20.png
+    - assets/images/badges/streak50.png
+    - assets/images/badges/default.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

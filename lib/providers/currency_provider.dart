@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:http/http.dart' as http;
-import 'package:numbersgame/main.dart';
-import 'dart:convert';
 
 import 'package:numbersgame/models/player_currency.dart';
 
@@ -10,104 +7,73 @@ class CurrencyProvider extends ChangeNotifier {
   PlayerCurrencies _currency = PlayerCurrencies(
     coins: 0,
     gems: 0,
-    badgesUnlocked: 0,
-    badgesTotal: 24,
+    badgesUnlocked: <Map<String, String>>[],
+    totalWins: 0,
+    totalGames: 0,
+    currentWinStreak: 0,
+    badgesPending: List.empty(growable: true),
+    badgesTotal: 24, // Assuming total badges are constant
   );
 
   PlayerCurrencies get currency => _currency;
 
+  // loadCurrency method to fetch values from Hive or initialize them
   Future<void> loadCurrency() async {
     final box = await Hive.openBox('playerCurrency');
-    print('Loading player currency from Hive box');
-    // Check if internet connection is available
-    if (await isConnected()) {
-      try {
-        // get data from API
-        final response = await http.post(
-          Uri.parse('https://projects.zaradaly.com/numbersgame/playerstats.php'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({'playerName': playerName.value}),
-        );
-        var data = null;
-        if (response.statusCode == 200) {
-          data = json.decode(response.body);
-          // _currency = PlayerCurrencies(
-          //   coins: data['coins'] ?? 0,
-          //   gems: data['gems'] ?? 0,
-          //   badgesUnlocked: data['badgesUnlocked'] ?? 0,
-          //   badgesTotal: data['badgesTotal'] ?? 24,
-          // );
-        }
-
-        // check if API data is different from Hive
-        if (data != null && box.isNotEmpty) {
-          final coins = box.get('coins', defaultValue: 0);
-          final gems = box.get('gems', defaultValue: 0);
-          final badgesUnlocked = box.get('badgesUnlocked', defaultValue: 0);
-          final badgesTotal = box.get('badgesTotal', defaultValue: 24);
-
-          if (data.isNotEmpty &&
-              data['coins'] != null &&
-              data['gems'] != null &&
-              data['badgesUnlocked'] != null &&
-              data['badgesTotal'] != null) {
-            if (data['coins'] != coins ||
-                data['gems'] != gems ||
-                data['badgesUnlocked'] != badgesUnlocked ||
-                data['badgesTotal'] != badgesTotal) {
-              // Update Hive with API data
-              await box.put('coins', data['coins']);
-              await box.put('gems', data['gems']);
-              await box.put('badgesUnlocked', data['badgesUnlocked']);
-              await box.put('badgesTotal', data['badgesTotal']);
-            }
-          }
-        }
-      } catch (e) {
-        print('Error fetching player currency from API: $e');
-      }
-    } 
-    else {
-      if (box.isEmpty) {
-        // If Hive is empty, initialize with default values
-        await box.put('coins', 10);
-        await box.put('gems', 15);
-        await box.put('badgesUnlocked', 2);
-        await box.put('badgesTotal', 24);
-      }
+    if (box.isNotEmpty) {
+      _currency = PlayerCurrencies(
+        coins: box.get('coins', defaultValue: 0),
+        gems: box.get('gems', defaultValue: 0),
+        badgesUnlocked: List<Map<String, String>>.from(
+          box.get('badgesUnlocked', defaultValue: <Map<String, String>>[])
+              .map((item) => Map<String, String>.from(item))
+        ),
+        currentWinStreak: box.get('currentWinStreak', defaultValue: 0),
+        totalWins: box.get('totalWins', defaultValue: 0),
+        totalGames: box.get('totalGames', defaultValue: 0),
+        badgesPending: box.get('badgesPending', defaultValue: List.empty(growable: true)),
+        badgesTotal: 24, // Assuming total badges are constant
+      );
+    } else {
+      // Initialize with default values if box is empty
+      _currency = PlayerCurrencies(
+        coins: 200,
+        gems: 0,
+        badgesUnlocked: <Map<String, String>>[],
+        currentWinStreak: 0,
+        totalWins: 0,
+        totalGames: 0,
+        badgesPending: List.empty(growable: true),
+        badgesTotal: 24, // Assuming total badges are constant
+      );
+      // Save initial values to Hive
+      await box.put('coins', _currency.coins);
+      await box.put('gems', _currency.gems);
+      await box.put('badgesUnlocked', _currency.badgesUnlocked);
+      await box.put('currentWinStreak', _currency.currentWinStreak);
+      await box.put('totalWins', _currency.totalWins);
+      await box.put('totalGames', _currency.totalGames);
+      await box.put('badgesPending', _currency.badgesPending);
     }
-    // Open the Hive box for player currency
-    // final box = await Hive.openBox('playerCurrency');
-
-    // if (box.isEmpty) {
-    //   // Save API data to Hive
-    //   await box.put('coins', (data.isNotEmpty && data['coins'] != null) ? data['coins'] : 0);
-    //   await box.put('gems', (data.isNotEmpty && data['gems'] != null) ? data['gems'] : 0);
-    //   await box.put('badgesUnlocked', (data.isNotEmpty && data['badgesUnlocked'] != null) ? data['badgesUnlocked'] : 0);
-    //   await box.put('badgesTotal', (data.isNotEmpty && data['badgesTotal'] != null) ? data['badgesTotal'] : 24);
-    // }
-
-    _currency = PlayerCurrencies(
-      coins: box.get('coins', defaultValue: 0),
-      gems: box.get('gems', defaultValue: 0),
-      badgesUnlocked: box.get('badgesUnlocked', defaultValue: 0),
-      badgesTotal: box.get('badgesTotal', defaultValue: 24),
-    );
-
-    // For now, we just use the initial values
+    // display the PlayerCurrencies object
+    print('Loaded PlayerCurrencies: $_currency');
+    // Notify listeners to update the UI
     notifyListeners();
   }
 
-  void updateCurrencies({int? coins, int? gems, int? badgesUnlocked}) {
+  void updateCurrencies({int? coins, int? gems, List<Map<String, String>>? badgesUnlocked, int? currentWinStreak, List<String>? badgesPending}) {
     if (coins != null) _currency.coins = coins;
     if (gems != null) _currency.gems = gems;
     if (badgesUnlocked != null) _currency.badgesUnlocked = badgesUnlocked;
+    if (currentWinStreak != null) _currency.currentWinStreak = currentWinStreak;
+    if (badgesPending != null) _currency.badgesPending = badgesPending;
     notifyListeners();
   }
 
   void deductCoins(int i) {
     if (_currency.coins >= i) {
       _currency.coins -= i;
+      print('Deducted $i coins. Remaining coins: ${_currency.coins}');
       notifyListeners();
       // Save to Hive
       Hive.box('playerCurrency').put('coins', _currency.coins);
@@ -115,4 +81,66 @@ class CurrencyProvider extends ChangeNotifier {
       print('Not enough coins to deduct $i coins');
     }
   }
+
+  void addCoins(int i) {
+    _currency.coins += i;
+    print('Added $i coins. Total coins: ${_currency.coins}');
+    notifyListeners();
+    // Save to Hive
+    Hive.box('playerCurrency').put('coins', _currency.coins);
+  }
+
+  void addGems(int i) {
+    _currency.gems += i;
+    notifyListeners();
+    // Save to Hive
+    Hive.box('playerCurrency').put('gems', _currency.gems);
+  }
+
+  void addWinStreak() {
+    _currency.currentWinStreak += 1;
+    notifyListeners();
+    // Save to Hive
+    Hive.box('playerCurrency').put('currentWinStreak', _currency.currentWinStreak);
+  }
+  void resetWinStreak() {
+    _currency.currentWinStreak = 0;
+    notifyListeners();
+    // Save to Hive
+    Hive.box('playerCurrency').put('currentWinStreak', _currency.currentWinStreak);
+  }
+
+  void addWin() {
+    _currency.totalWins += 1;
+    _currency.totalGames += 1;
+    notifyListeners();
+    // Save to Hive
+    Hive.box('playerCurrency').put('totalWins', _currency.totalWins);
+    Hive.box('playerCurrency').put('totalGames', _currency.totalGames);
+  }
+
+  void addGame() {
+    _currency.totalGames += 1;
+    notifyListeners();
+    // Save to Hive
+    Hive.box('playerCurrency').put('totalGames', _currency.totalGames);
+  }
+  
+  void unlockBadge(String badgeName, String badgeImage) {
+    // Check if badge is already unlocked by looking for the badgeName in the list
+    bool isAlreadyUnlocked = _currency.badgesUnlocked.any((badge) => badge['badgeName'] == badgeName);
+    
+    if (!isAlreadyUnlocked) {
+      _currency.badgesUnlocked.add({'badgeName': badgeName, 'image': badgeImage});
+      _currency.badgesPending.add(badgeName);
+      print('Badge $badgeName unlocked. Total badges unlocked: ${_currency.badgesUnlocked.length}');
+      notifyListeners();
+      // Save to Hive
+      Hive.box('playerCurrency').put('badgesUnlocked', _currency.badgesUnlocked);
+      Hive.box('playerCurrency').put('badgesPending', _currency.badgesPending);
+    } else {
+      print('Badge $badgeName is already unlocked.');
+    }
+  }
+
 }

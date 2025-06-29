@@ -1,4 +1,4 @@
-import 'dart:convert';
+// import 'dart:convert';
 import 'dart:math';
 
 // import 'package:audioplayers/audioplayers.dart';
@@ -9,16 +9,22 @@ import 'package:numbersgame/const.dart';
 import 'package:numbersgame/main.dart';
 import 'package:numbersgame/providers/currency_provider.dart';
 import 'package:numbersgame/widgets/number_pad.dart';
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class PurplePage extends StatefulWidget {
   final int digitsNumber;
+  final int cost;
+  final int reward;
+  final int allowedGuesses;
 
   // final String child;
   const PurplePage({
     super.key,
     required this.digitsNumber,
+    required this.cost,
+    required this.reward,
+    required this.allowedGuesses,
     // required this.child,
   });
 
@@ -40,7 +46,7 @@ class PurpleePageState extends State<PurplePage> {
     super.initState();
     setState(() {
       numberToGuess = generateRandomNumber();
-      userAnswer = numberToGuess.toString();
+      // userAnswer = numberToGuess.toString();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // playerName.value = '';
@@ -55,6 +61,7 @@ class PurpleePageState extends State<PurplePage> {
   void askName() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
           title: Text(
@@ -158,7 +165,6 @@ class PurpleePageState extends State<PurplePage> {
       // Do nothing for empty value
       return;
     } else if (value == 'Submit') {
-      // await player.play(AssetSource('audio/enter.mp3'));
       AudioManager().playAudio('assets/audio/enter.mp3');
       // Check if userAnswer is empty
       // hide previous snackbar if any
@@ -219,47 +225,170 @@ class PurpleePageState extends State<PurplePage> {
       int correctPosition = 0;
       int correctDigits = 0;
       String numberToGuessStr = numberToGuess.toString();
+      List<Map<String, dynamic>> answerWithColors = [];
+
       for (int i = 0; i < userAnswer.length; i++) {
         if (i < numberToGuessStr.length) {
           if (userAnswer[i] == numberToGuessStr[i]) {
             correctPosition++;
+            answerWithColors.add({
+              'digit': userAnswer[i],
+              'color': 'green', // Correct position
+            });
           } else if (numberToGuessStr.contains(userAnswer[i])) {
             correctDigits++;
+            answerWithColors.add({
+              'digit': userAnswer[i],
+              'color': 'orange', // Wrong position but digit exists
+            });
+          } else {
+            answerWithColors.add({
+              'digit': userAnswer[i],
+              'color': 'white', // Digit does not exist
+            });
           }
         }
       }
 
       // add userAnswer and the correctPosition and correctDigits to the guesses list
       guesses.add({
-        'answer': int.tryParse(userAnswer),
+        'answer': answerWithColors,
         'correctPosition': correctPosition,
         'correctDigits': correctDigits,
       });
+
+      // if number of guesses is more than 10, lose the game
+      if (guesses.length >= widget.allowedGuesses) {
+        saveLostGameData(playerName.value, widget.digitsNumber);
+        AudioManager().playAudio('assets/audio/lose.mp3');
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(
+                'Game Over',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple[700],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/catcry.gif'),
+                    // width: 100,
+                    height: 200,
+                    // fit: BoxFit.cover,
+                  ),
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      text:
+                          'You have used all your guesses.\n\nThe number was ',
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.deepPurple[700],
+                      ),
+                      children: [
+                        TextSpan(
+                          text: '$numberToGuess',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple[900],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Go back to the previous screen
+                    Navigator.pop(context);
+                  },
+                  child: Text('Back'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+
+                    // Check if the user has enough coins depending on the game mode
+                    if (context.read<CurrencyProvider>().currency.coins <
+                        widget.cost) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'You need at least ${widget.cost} coins to play again.',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.redAccent.shade200,
+                          margin: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).size.height * 0.38,
+                            left: 20,
+                            right: 20,
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    // Deduct 10 coins from the player
+                    context.read<CurrencyProvider>().deductCoins(widget.cost);
+                    // Play sound without stopping the background music
+                    AudioManager().playAudio('assets/audio/playagain.mp3');
+
+                    // Reset the game
+                    setState(() {
+                      guesses.clear();
+                      numberToGuess = generateRandomNumber();
+                      userAnswer = '';
+                    });
+                  },
+                  child: Text(
+                    'Play Again ↺',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+              actionsAlignment: MainAxisAlignment.spaceEvenly,
+            );
+          },
+        );
+        return;
+      }
 
       // Only clear the answer in setState
       setState(() {
         userAnswer = '';
       });
 
-      // Check the userAnswer
-      if (userAnswer == numberToGuess.toString()) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Correct!')));
-      }
-      // else {
-      //   ScaffoldMessenger.of(
-      //     context,
-      //   ).showSnackBar(SnackBar(content: Text('Incorrect! Try again.')));
-      // }
       // if the answer is correct, show a dialog
       if (correctPosition == numberToGuess.toString().length) {
         AudioManager().playAudio('assets/audio/applauseWhistle.wav');
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (context) {
             // send player name and number of guesses to an api
-            sendPlayerNameAndGuesses(playerName.value, guesses.length);
+            saveWonGameData(playerName.value, guesses.length);
             return AlertDialog(
               title: Text(
                 'Congratulations!',
@@ -369,7 +498,6 @@ class PurpleePageState extends State<PurplePage> {
         );
       }
     } else {
-      // await player.play(AssetSource('audio/tap.mp3'));
       AudioManager().playAudio('assets/audio/tap.mp3');
       // verify max 2 digits
       if (userAnswer.length >= numberToGuess.toString().length) {
@@ -400,6 +528,7 @@ class PurpleePageState extends State<PurplePage> {
   @override
   Widget build(BuildContext context) {
     final currencies = context.watch<CurrencyProvider>().currency;
+    
     return Scaffold(
       backgroundColor: Colors.deepPurple[300],
       extendBodyBehindAppBar: true,
@@ -432,12 +561,12 @@ class PurpleePageState extends State<PurplePage> {
                       IconButton(
                         icon: Icon(Icons.arrow_back, color: Colors.white),
                         onPressed: () {
-                          Navigator.pop(context);
+                          abandonGame();
                         },
                       ),
 
                       Text(
-                        '4 digits',
+                        '${widget.digitsNumber} digits',
                         style: whiteTextStyle.copyWith(
                           // fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -457,7 +586,7 @@ class PurpleePageState extends State<PurplePage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width:10),
+                      const SizedBox(width: 10),
                       Text(
                         '💎 ${currencies.gems.toString()}',
                         style: TextStyle(
@@ -475,7 +604,7 @@ class PurpleePageState extends State<PurplePage> {
                       //     fontWeight: FontWeight.bold,
                       //   ),
                       // ),
-                      const SizedBox(width:10),
+                      const SizedBox(width: 10),
                     ],
                   ),
 
@@ -554,15 +683,46 @@ class PurpleePageState extends State<PurplePage> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                TextSpan(
-                                  text:
-                                      guesses[index]['answer']?.toString() ??
-                                      'No Answer',
-                                  style: whiteTextStyle.copyWith(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                // Display each digit with its color
+                                ...((guesses[index]['answer']
+                                            as List<Map<String, dynamic>>?)
+                                        ?.map((digitInfo) {
+                                          Color digitColor;
+                                          switch (digitInfo['color']) {
+                                            case 'green':
+                                              digitColor =
+                                                  (widget.allowedGuesses == 50)
+                                                  ? Colors.greenAccent
+                                                  : Colors.white;
+                                              break;
+                                            case 'orange':
+                                              digitColor =
+                                                  (widget.allowedGuesses == 50)
+                                                  ? Colors.orangeAccent
+                                                  : Colors.white;
+                                              break;
+                                            default:
+                                              digitColor = Colors.white;
+                                          }
+                                          return TextSpan(
+                                            text: digitInfo['digit'],
+                                            style: TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                              color: digitColor,
+                                            ),
+                                          );
+                                        })
+                                        .toList() ??
+                                    [
+                                      TextSpan(
+                                        text: 'No Answer',
+                                        style: whiteTextStyle.copyWith(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ]),
                               ],
                             ),
                           ),
@@ -705,63 +865,263 @@ class PurpleePageState extends State<PurplePage> {
     super.dispose();
   }
 
-  Future<void> sendPlayerNameAndGuesses(String value, int length) async {
-    try {
-      // check if connection is available
-      if (!await isConnected()) {
-        final response = await http.post(
-          Uri.parse(
-            'https://projects.zaradaly.com/numbersgame/submitscore.php',
-          ),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'username': value,
-            'score': length,
-            'mode': widget.digitsNumber,
-          }),
-        );
+  Future<void> saveWonGameData(String value, int numberGuesses) async {
+    // save player name and guesses to Hive
+    final box = await Hive.openBox('unsyncedGames');
+    await box.add({
+      'username': value,
+      'score': numberGuesses,
+      'mode': (widget.allowedGuesses == 50 ) ? 'Easy' : (widget.digitsNumber == 4) ? 'Normal' : 'Hard',
+      'reward': widget.reward,
+      'won': true
+    });
+    print('Player name and guesses saved locally for later syncing.');
+    print('Player name: $value, Guesses: $numberGuesses');
 
-        if (response.statusCode == 200) {
-          // If the server returns an OK response, parse the JSON.
-          print(response.body);
-          final data = jsonDecode(response.body);
-          if (data['status'] == 'success') {
-            print('Player name and guesses submitted successfully');
-          } else {
-            print(
-              'Failed to submit player name and guesses: ${data['message']}',
+    // add coins and gems to the player currency Hive box
+    final currencyProvider = context.read<CurrencyProvider>();
+    currencyProvider.addWinStreak();
+    currencyProvider.updateCurrencies(
+      coins: currencyProvider.currency.coins + widget.reward,
+      gems: currencyProvider.currency.gems + 5,
+    );
+    // add total wins and total games
+    currencyProvider.addWin();
+    currencyProvider.addGame();
+    print('Currency updated and saved to Hive.');
+    print('Added ${widget.reward} coins and 5 gems to the player currency.');
+    // display the PlayerCurrencies object
+    print('Player Currencies: ${currencyProvider.currency}');
+    print(
+      'Coins: ${currencyProvider.currency.coins}, Gems: ${currencyProvider.currency.gems}',
+    );
+
+    // check if the player got to a win streakBadge
+    for (var badge in streakBadges) {
+      if (currencyProvider.currency.currentWinStreak ==
+          badge['streakRequired']) {
+        // Unlock the badge
+        currencyProvider.unlockBadge(
+          badge['name'].toString(),
+          badge['image_asset']?.toString() ?? 'assets/images/badges/default.png'
+        );
+        print('Badge "${badge['name']}" unlocked for the player.');
+        // Show a dialog to congratulate the player for the win streak
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(
+                'Congratulations!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple[700],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min, // <-- Add this line
+                children: [
+                  Image.asset(
+                    'assets/images/badges/streak${currencyProvider.currency.currentWinStreak}.png',
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                  Text(
+                    'You have achieved a win streak of ${currencyProvider.currency.currentWinStreak}!\n',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.deepPurple[900],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK', style: TextStyle(color: Colors.white)),
+                ),
+              ],
             );
-          }
-        } else {
-          // If the server did not return an OK response, throw an exception.
-          throw Exception('Failed to submit player name and guesses');
-        }
-      } else {
-        // If not connected, save the data to Hive for later syncing
-        final box = await Hive.openBox('unsyncedGames');
-        await box.add({
-          'username': value,
-          'score': length,
-          'mode': widget.digitsNumber,
-        });
-        print('No internet connection. Data saved locally for later syncing.');
+          },
+        );
       }
-      // add coins and gems to the player currency
-      final currencyProvider = context.read<CurrencyProvider>();
-      currencyProvider.currency.coins += 10; // Add 10 coins for winning
-      currencyProvider.currency.gems += 1; // Add 1 gem for winning
-      // Notify listeners to update the UI
-      currencyProvider.notifyListeners();
-      // Save the updated currency to Hive
-      final currencyBox = await Hive.openBox('playerCurrency');
-      await currencyBox.put('coins', currencyProvider.currency.coins);
-      await currencyBox.put('gems', currencyProvider.currency.gems);
-      print('Player currency updated and saved to Hive.');
-    } catch (e) {
-      print('Error sending data: $e');
-      rethrow;
     }
+    // Check if the player has unlocked a new total wins badge
+    for (var badge in trophyBadges) {
+      if (currencyProvider.currency.totalWins == badge['winsRequired']) {
+        // Unlock the badge
+        currencyProvider.unlockBadge(
+          badge['name'].toString(),
+          badge['image_asset']?.toString() ?? 'assets/images/badges/default.png'
+        );
+        print('Badge "${badge['name']}" unlocked for the player.');
+        // Show a dialog to congratulate the player for the total wins
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(
+                'Congratulations!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple[700],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min, // <-- Add this line
+                children: [
+                  Image.asset(
+                    'assets/images/badges/win${currencyProvider.currency.totalWins}.png',
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                  Text(
+                    'You have achieved a total of ${currencyProvider.currency.totalWins} wins!\n',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.deepPurple[900],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
+  }
+
+  Future<void> saveLostGameData(String value, int numberGuesses) async {
+    // save player name and guesses to Hive
+    final box = await Hive.openBox('unsyncedGames');
+    await box.add({
+      'username': value,
+      'score': 0,
+      'mode': (widget.allowedGuesses == 50 ) ? 'Easy' : (widget.digitsNumber == 4) ? 'Normal' : 'Hard',
+      'reward': 0,
+      'won': false
+    });
+    
+    final currencyProvider = context.read<CurrencyProvider>();
+    currencyProvider.resetWinStreak();
+    currencyProvider.addGame();
+    // // save player name and guesses to Hive
+    //   final box = Hive.box('unsyncedGames');
+    //   box.add({
+    //     'username': value,
+    //     'score': 0, // No score for lost games
+    //     'mode': digitsNumber,
+    //   });
+    //   print('Player name and guesses saved locally for later syncing.');
+    //   print('Player name: $value, Guesses: 0');
+
+    //   // Deduct coins from the player currency Hive box
+    //   final currencyProvider = context.read<CurrencyProvider>();
+    //   currencyProvider.updateCurrencies(
+    //     coins: currencyProvider.currency.coins - widget.cost,
+    //   );
+    //   print('Currency updated and saved to Hive.');
+    //   print('Deducted ${widget.cost} coins from the player currency.');
+    //   // display the PlayerCurrencies object
+    //   print('Player Currencies: ${currencyProvider.currency}');
+    //   print(
+    //     'Coins: ${currencyProvider.currency.coins}, Gems: ${currencyProvider.currency.gems}',
+    //   );
+  }
+
+  void abandonGame() {
+    // Show a confirmation dialog before abandoning the game
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Abandon Game ?',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.deepPurple[700],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min, // <-- Add this line
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/catmad.gif',
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Are you sure ?\n\nYour progress will be lost and you will lose your current Win Streak.',
+                style: TextStyle(fontSize: 18, color: Colors.deepPurple[900]),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              onPressed: () {
+                // reset streak
+                context.read<CurrencyProvider>().resetWinStreak();
+                final currencyProvider = context.read<CurrencyProvider>();
+                currencyProvider.addGame();
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.pop(context); // Go back to the previous screen
+              },
+              child: Text('Yes', style: TextStyle(color: Colors.white)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('No', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
