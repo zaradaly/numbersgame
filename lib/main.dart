@@ -50,7 +50,7 @@ Future<void> syncWithServer() async {
       // Here you would typically send the unsynced games to your server
       // For example, using an HTTP POST request
       final response = await http.post(
-        Uri.parse('https://projects.zaradaly.com/numbersgame/sync.php'),
+        Uri.parse('https://numbersgame.zaradaly.com/sync.php'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(unsyncedGames),
       );
@@ -81,9 +81,7 @@ Future<bool> isConnected() async {
   // Then check actual internet access by pinging a known site
   try {
     final result = await http
-        .get(
-          Uri.parse('https://projects.zaradaly.com/numbersgame/pingtest.txt'),
-        )
+        .get(Uri.parse('https://numbersgame.zaradaly.com/pingtest.txt'))
         .timeout(Duration(seconds: 3));
     return result.statusCode == 200;
   } catch (e) {
@@ -97,6 +95,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final currencies = context.watch<CurrencyProvider>().currency;
+    currencies.showData();
+
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(

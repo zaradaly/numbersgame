@@ -4,12 +4,12 @@ import 'package:numbersgame/const.dart';
 class MyButton extends StatelessWidget {
   final String child;
   final VoidCallback onTap;
-  var buttonColor = Colors.deepPurple[400];
 
   MyButton({super.key, required this.child, required this.onTap}) : super();
 
   @override
   Widget build(BuildContext context) {
+    var buttonColor = Colors.deepPurple[400];
     // if (child == 'DEL') {
     //   buttonColor = Colors.redAccent;
     // } else 
@@ -54,7 +54,7 @@ class MyButton extends StatelessWidget {
           ),
           child: Center(child: Text(child, style: whiteTextStyle.copyWith(
             color: child == '⌫' ? Colors.orangeAccent : Colors.white,
-            fontSize: child == '⌫' ? 40 : 32,
+            fontSize: child == '⌫' ? 30 : 24,
           ))),
         ),
       ),

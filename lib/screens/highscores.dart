@@ -25,7 +25,7 @@ class _HighScoresState extends State<HighScores> {
 
   Future<void> fetchScores() async {
     final response = await http.get(
-      Uri.parse('https://projects.zaradaly.com/numbersgame/highscores.php'),
+      Uri.parse('https://numbersgame.zaradaly.com/highscores.php'),
     );
 
     if (response.statusCode == 200) {

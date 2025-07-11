@@ -5,8 +5,8 @@ import 'package:numbersgame/models/player_currency.dart';
 
 class CurrencyProvider extends ChangeNotifier {
   PlayerCurrencies _currency = PlayerCurrencies(
-    coins: 0,
-    gems: 0,
+    coins: 200,
+    gems: 20,
     badgesUnlocked: <Map<String, String>>[],
     totalWins: 0,
     totalGames: 0,
@@ -25,25 +25,25 @@ class CurrencyProvider extends ChangeNotifier {
         coins: box.get('coins', defaultValue: 0),
         gems: box.get('gems', defaultValue: 0),
         badgesUnlocked: List<Map<String, String>>.from(
-          box.get('badgesUnlocked', defaultValue: <Map<String, String>>[])
-              .map((item) => Map<String, String>.from(item))
+          (box.get('badgesUnlocked', defaultValue: <Map<String, String>>[]) as List)
+              .map((item) => Map<String, String>.from(item ?? {}))
         ),
         currentWinStreak: box.get('currentWinStreak', defaultValue: 0),
         totalWins: box.get('totalWins', defaultValue: 0),
         totalGames: box.get('totalGames', defaultValue: 0),
-        badgesPending: box.get('badgesPending', defaultValue: List.empty(growable: true)),
+        badgesPending: List<String>.from(box.get('badgesPending', defaultValue: <String>[])),
         badgesTotal: 24, // Assuming total badges are constant
       );
     } else {
       // Initialize with default values if box is empty
       _currency = PlayerCurrencies(
         coins: 200,
-        gems: 0,
+        gems: 10,
         badgesUnlocked: <Map<String, String>>[],
         currentWinStreak: 0,
         totalWins: 0,
         totalGames: 0,
-        badgesPending: List.empty(growable: true),
+        badgesPending: <String>[],
         badgesTotal: 24, // Assuming total badges are constant
       );
       // Save initial values to Hive
@@ -96,6 +96,16 @@ class CurrencyProvider extends ChangeNotifier {
     // Save to Hive
     Hive.box('playerCurrency').put('gems', _currency.gems);
   }
+  void deductGems(int i) {
+    if (_currency.gems >= i) {
+      _currency.gems -= i;
+      notifyListeners();
+      // Save to Hive
+      Hive.box('playerCurrency').put('gems', _currency.gems);
+    } else {
+      print('Not enough gems to deduct $i gems');
+    }
+  }
 
   void addWinStreak() {
     _currency.currentWinStreak += 1;
@@ -141,6 +151,17 @@ class CurrencyProvider extends ChangeNotifier {
     } else {
       print('Badge $badgeName is already unlocked.');
     }
+  }
+
+  bool isBadgeUnlocked(String badgeName) {
+    return _currency.badgesUnlocked.any((badge) => badge['badgeName'] == badgeName);
+  }
+
+  List<String> getUnlockedBadgeNames() {
+    return _currency.badgesUnlocked
+        .map((badge) => badge['badgeName'] ?? '')
+        .where((name) => name.isNotEmpty)
+        .toList();
   }
 
 }
