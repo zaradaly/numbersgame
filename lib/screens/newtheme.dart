@@ -404,7 +404,7 @@ class PurpleePageState extends State<PurplePage> {
       if (correctPosition == numberToGuess.toString().length) {
         // send player name and number of guesses to an api
         saveWonGameData(playerName.value, guesses.length);
-        AudioManager().playAudio('assets/audio/applauseWhistle.wav');
+        AudioManager().playAudio('assets/audio/win.mp3');
         showDialog(
           context: context,
           barrierDismissible: false,

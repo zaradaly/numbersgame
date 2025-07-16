@@ -12,6 +12,8 @@ import 'package:numbersgame/screens/gameshistory.dart';
 import 'package:numbersgame/screens/my_badges.dart';
 // import 'package:numbersgame/screens/homepage.dart';
 import 'package:numbersgame/screens/newtheme.dart';
+import 'package:numbersgame/widgets/FantasySettingsScreen.dart';
+import 'package:numbersgame/widgets/glossy_button.dart';
 import 'package:provider/provider.dart';
 
 class HomeMenu extends StatefulWidget {
@@ -28,7 +30,7 @@ class _HomeMenuState extends State<HomeMenu> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    AudioManager().playBackgroundMusic('assets/audio/background.mp3');
+    AudioManager().playBackgroundMusic('assets/audio/bgAudio.mp3');
     // if (await isConnected()){
     //   await syncWithServer();
     // }
@@ -43,7 +45,7 @@ class _HomeMenuState extends State<HomeMenu> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      AudioManager().playBackgroundMusic('assets/audio/background.mp3');
+      AudioManager().playBackgroundMusic('assets/audio/bgAudio.mp3');
     } else if (state == AppLifecycleState.paused) {
       AudioManager().stopBackgroundMusic();
     }
@@ -972,30 +974,42 @@ class _HomeMenuState extends State<HomeMenu> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
-                    child: (today.year == 2025 && today.month == 7 && (today.day == 11 || today.day == 12))?
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.8),
-                        foregroundColor: Colors.deepPurple,
-                        padding: const EdgeInsets.all(5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 1,
-                      ),
+                    child: GlossyButton(
+                      text: "Language",
                       onPressed: () {
-                        // navigate to the high scores screen
-                        resetCoinsGems(currencies);
-                      },
-                      child: Column(
-                        children: [
-                          const Text('🪙', style: TextStyle(fontSize: 36)),
-                          Text('Reset Coins & Gems',
-                            style: TextStyle(fontSize: 14),
+                        // navigate to the language selection screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FantasySettingsScreen(),
                           ),
-                        ],
-                      ),
-                    ) : const SizedBox(width: 10),
+                        );
+                      },
+                    ),
+                    // (today.year == 2025 && today.month == 7 && (today.day == 11 || today.day == 12))?
+                    // ElevatedButton(
+                    //   style: ElevatedButton.styleFrom(
+                    //     backgroundColor: Colors.white.withOpacity(0.8),
+                    //     foregroundColor: Colors.deepPurple,
+                    //     padding: const EdgeInsets.all(5),
+                    //     shape: RoundedRectangleBorder(
+                    //       borderRadius: BorderRadius.circular(12),
+                    //     ),
+                    //     elevation: 1,
+                    //   ),
+                    //   onPressed: () {
+                    //     // navigate to the high scores screen
+                    //     resetCoinsGems(currencies);
+                    //   },
+                    //   child: Column(
+                    //     children: [
+                    //       const Text('🪙', style: TextStyle(fontSize: 36)),
+                    //       Text('Reset Coins & Gems',
+                    //         style: TextStyle(fontSize: 14),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ) : const SizedBox(width: 10),
                   ),
                   const SizedBox(width: 10),
                   // Help button
